@@ -42,19 +42,18 @@ export async function loadCollection(collection, fallbackValue, options = {}) {
   return payload.data;
 }
 
-export function saveCollection(collection, value) {
-  requestRemoteCollection(collection, {
-    method: "PUT",
-    body: JSON.stringify({ data: value }),
-  }).catch((error) => {
-    console.error(`API save failed for ${collection}.`, error);
+export async function saveCollection(collection, value) {
+  await requestRemoteCollection(collection, {
+    method: "POST",
+    body: JSON.stringify({ action: "save", data: value }),
   });
   return value;
 }
 
-export function removeCollection(collection) {
-  requestRemoteCollection(collection, { method: "DELETE" }).catch((error) => {
-    console.error(`API delete failed for ${collection}.`, error);
+export async function removeCollection(collection) {
+  await requestRemoteCollection(collection, {
+    method: "POST",
+    body: JSON.stringify({ action: "delete" }),
   });
 }
 

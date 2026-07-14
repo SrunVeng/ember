@@ -29,9 +29,9 @@ export const useAppStore = create((set, get) => ({
     });
     set({ preferences });
   },
-  setSidebarCollapsed: (sidebarCollapsed) => {
+  setSidebarCollapsed: async (sidebarCollapsed) => {
     const preferences = { ...get().preferences, sidebarCollapsed };
-    saveCollection(COLLECTIONS.appPreferences, preferences);
+    await saveCollection(COLLECTIONS.appPreferences, preferences);
     set({ preferences });
   },
   login: ({ email, password }) => {

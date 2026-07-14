@@ -13,6 +13,13 @@ export const usePricingRulesStore = create((set) => ({
     const rules = await loadPricingRules();
     set({ rules, isHydrated: true });
   },
-  saveRules: (rules) => set({ rules: savePricingRules(rules) }),
-  resetRules: () => set({ rules: resetPricingRules() }),
+  saveRules: async (rules) => {
+    const saved = await savePricingRules(rules);
+    set({ rules: saved });
+  },
+  resetRules: async () => {
+    const rules = await resetPricingRules();
+    set({ rules });
+    return rules;
+  },
 }));

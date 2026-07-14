@@ -73,7 +73,7 @@ export function PricingRulesPage() {
     );
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (hasInvalidNumbers(draftRules) || hasInvalidNumbers(draftShipping)) {
       addToast({
         type: "error",
@@ -83,23 +83,32 @@ export function PricingRulesPage() {
       return;
     }
 
-    saveRules(draftRules);
-    replaceShippingMethods(draftShipping);
-    addToast({ type: "success", title: "Pricing rules saved" });
+    try {
+      await saveRules(draftRules);
+      await replaceShippingMethods(draftShipping);
+      addToast({ type: "success", title: "Pricing rules saved" });
+    } catch (error) {
+      addToast({ type: "error", title: "Pricing rules were not saved", message: error.message });
+    }
   }
 
-  function handleReset() {
-    const nextRules = resetRules();
+  async function handleReset() {
     const nextShipping = draftShipping.map((method) => ({
       ...method,
       ratePerLb: DEFAULT_PRICING_RULES.shipping[method.code]?.ratePerLb ?? method.ratePerLb,
       updatedAt: new Date().toISOString(),
     }));
-    setDraftRules(cloneRules(nextRules));
-    setDraftShipping(nextShipping);
-    replaceShippingMethods(nextShipping);
-    resetDialog.close();
-    addToast({ type: "success", title: "Pricing rules reset" });
+
+    try {
+      const nextRules = await resetRules();
+      await replaceShippingMethods(nextShipping);
+      setDraftRules(cloneRules(nextRules));
+      setDraftShipping(nextShipping);
+      resetDialog.close();
+      addToast({ type: "success", title: "Pricing rules reset" });
+    } catch (error) {
+      addToast({ type: "error", title: "Pricing rules were not reset", message: error.message });
+    }
   }
 
   return (

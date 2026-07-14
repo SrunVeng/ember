@@ -13,11 +13,12 @@ export const useShippingMethodStore = create((set, get) => ({
     const shippingMethods = await loadShippingMethods();
     set({ shippingMethods, isHydrated: true });
   },
-  addShippingMethod: (values) => {
+  addShippingMethod: async (values) => {
     const next = [...get().shippingMethods, createShippingMethodRecord(values)];
-    set({ shippingMethods: saveShippingMethods(next) });
+    const saved = await saveShippingMethods(next);
+    set({ shippingMethods: saved });
   },
-  updateShippingMethod: (id, values) => {
+  updateShippingMethod: async (id, values) => {
     const next = get().shippingMethods.map((method) =>
       method.id === id
         ? {
@@ -30,15 +31,18 @@ export const useShippingMethodStore = create((set, get) => ({
           }
         : method,
     );
-    set({ shippingMethods: saveShippingMethods(next) });
+    const saved = await saveShippingMethods(next);
+    set({ shippingMethods: saved });
   },
-  setShippingMethodActive: (id, active) => {
+  setShippingMethodActive: async (id, active) => {
     const next = get().shippingMethods.map((method) =>
       method.id === id ? { ...method, active, updatedAt: new Date().toISOString() } : method,
     );
-    set({ shippingMethods: saveShippingMethods(next) });
+    const saved = await saveShippingMethods(next);
+    set({ shippingMethods: saved });
   },
-  replaceShippingMethods: (shippingMethods) => {
-    set({ shippingMethods: saveShippingMethods(shippingMethods) });
+  replaceShippingMethods: async (shippingMethods) => {
+    const saved = await saveShippingMethods(shippingMethods);
+    set({ shippingMethods: saved });
   },
 }));

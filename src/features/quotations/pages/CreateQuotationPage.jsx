@@ -18,9 +18,13 @@ export function CreateQuotationPage() {
   const quotationNumber = useMemo(() => createQuotationNumber(quotations.length), [quotations.length]);
 
   async function handleSubmit(quotation) {
-    addQuotation(quotation);
-    addToast({ type: "success", title: "Quotation created", message: quotation.quotationNumber });
-    navigate(`/quotations/${quotation.id}`);
+    try {
+      await addQuotation(quotation);
+      addToast({ type: "success", title: "Quotation created", message: quotation.quotationNumber });
+      navigate(`/quotations/${quotation.id}`);
+    } catch (error) {
+      addToast({ type: "error", title: "Quotation was not saved", message: error.message });
+    }
   }
 
   return (

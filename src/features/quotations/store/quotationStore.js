@@ -15,22 +15,26 @@ export const useQuotationStore = create((set, get) => ({
     const quotations = await loadQuotations();
     set({ quotations, isHydrated: true });
   },
-  addQuotation: (quotation) => {
+  addQuotation: async (quotation) => {
     const next = [quotation, ...get().quotations];
-    set({ quotations: saveQuotations(next) });
+    const saved = await saveQuotations(next);
+    set({ quotations: saved });
+    return quotation;
   },
-  updateQuotation: (quotationId, values) => {
+  updateQuotation: async (quotationId, values) => {
     const next = get().quotations.map((quotation) =>
       quotation.id === quotationId ? { ...quotation, ...values, updatedAt: new Date().toISOString() } : quotation,
     );
-    set({ quotations: saveQuotations(next) });
+    const saved = await saveQuotations(next);
+    set({ quotations: saved });
   },
-  deleteQuotation: (quotationId) => {
+  deleteQuotation: async (quotationId) => {
     const next = get().quotations.filter((quotation) => quotation.id !== quotationId);
-    set({ quotations: saveQuotations(next) });
+    const saved = await saveQuotations(next);
+    set({ quotations: saved });
   },
   getQuotationById: (quotationId) => findQuotationById(get().quotations, quotationId),
-  updateStatus: (quotationId, status) => {
+  updateStatus: async (quotationId, status) => {
     const quotation = findQuotationById(get().quotations, quotationId);
     if (!quotation) {
       return { blocked: true, reason: "Quotation was not found." };
@@ -44,10 +48,11 @@ export const useQuotationStore = create((set, get) => ({
     const next = get().quotations.map((item) =>
       item.id === quotationId ? result.quotation : item,
     );
-    set({ quotations: saveQuotations(next) });
+    const saved = await saveQuotations(next);
+    set({ quotations: saved });
     return result;
   },
-  approveSpecialRequest: (quotationId) => {
+  approveSpecialRequest: async (quotationId) => {
     const next = get().quotations.map((quotation) =>
       quotation.id === quotationId
         ? {
@@ -58,9 +63,10 @@ export const useQuotationStore = create((set, get) => ({
           }
         : quotation,
     );
-    set({ quotations: saveQuotations(next) });
+    const saved = await saveQuotations(next);
+    set({ quotations: saved });
   },
-  rejectSpecialRequest: (quotationId, rejectionReason) => {
+  rejectSpecialRequest: async (quotationId, rejectionReason) => {
     const next = get().quotations.map((quotation) =>
       quotation.id === quotationId
         ? {
@@ -71,9 +77,11 @@ export const useQuotationStore = create((set, get) => ({
           }
         : quotation,
     );
-    set({ quotations: saveQuotations(next) });
+    const saved = await saveQuotations(next);
+    set({ quotations: saved });
   },
-  replaceQuotations: (quotations) => {
-    set({ quotations: saveQuotations(quotations) });
+  replaceQuotations: async (quotations) => {
+    const saved = await saveQuotations(quotations);
+    set({ quotations: saved });
   },
 }));

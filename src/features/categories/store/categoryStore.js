@@ -13,11 +13,12 @@ export const useCategoryStore = create((set, get) => ({
     const categories = await loadCategories();
     set({ categories, isHydrated: true });
   },
-  addCategory: (values) => {
+  addCategory: async (values) => {
     const next = [...get().categories, createCategoryRecord(values)];
-    set({ categories: saveCategories(next) });
+    const saved = await saveCategories(next);
+    set({ categories: saved });
   },
-  updateCategory: (id, values) => {
+  updateCategory: async (id, values) => {
     const next = get().categories.map((category) =>
       category.id === id
         ? {
@@ -34,12 +35,14 @@ export const useCategoryStore = create((set, get) => ({
           }
         : category,
     );
-    set({ categories: saveCategories(next) });
+    const saved = await saveCategories(next);
+    set({ categories: saved });
   },
-  setCategoryActive: (id, active) => {
+  setCategoryActive: async (id, active) => {
     const next = get().categories.map((category) =>
       category.id === id ? { ...category, active, updatedAt: new Date().toISOString() } : category,
     );
-    set({ categories: saveCategories(next) });
+    const saved = await saveCategories(next);
+    set({ categories: saved });
   },
 }));

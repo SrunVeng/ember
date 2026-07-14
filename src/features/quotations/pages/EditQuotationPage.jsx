@@ -29,9 +29,13 @@ export function EditQuotationPage() {
   }
 
   async function handleSubmit(updatedQuotation) {
-    updateQuotation(quotation.id, updatedQuotation);
-    addToast({ type: "success", title: "Quotation updated", message: quotation.quotationNumber });
-    navigate(`/quotations/${quotation.id}`);
+    try {
+      await updateQuotation(quotation.id, updatedQuotation);
+      addToast({ type: "success", title: "Quotation updated", message: quotation.quotationNumber });
+      navigate(`/quotations/${quotation.id}`);
+    } catch (error) {
+      addToast({ type: "error", title: "Quotation was not saved", message: error.message });
+    }
   }
 
   return (

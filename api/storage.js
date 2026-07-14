@@ -91,7 +91,7 @@ async function handleStorageRequest({ url, method, body }) {
       return { payload: { data }, status: 200 };
     }
 
-    if (method === "PUT") {
+    if (method === "POST" && body?.action === "save") {
       await put(pathname, JSON.stringify(body.data ?? null), {
         access: "private",
         allowOverwrite: true,
@@ -101,7 +101,7 @@ async function handleStorageRequest({ url, method, body }) {
       return { payload: { ok: true }, status: 200 };
     }
 
-    if (method === "DELETE") {
+    if (method === "POST" && body?.action === "delete") {
       await del(pathname);
       return { payload: { ok: true }, status: 200 };
     }
@@ -120,7 +120,7 @@ async function handleStorageRequest({ url, method, body }) {
 }
 
 export async function handleWebStorageRequest(request) {
-  const body = request.method === "PUT" ? await request.json() : undefined;
+  const body = request.method === "POST" ? await request.json() : undefined;
   const result = await handleStorageRequest({
     url: request.url,
     method: request.method,
@@ -135,7 +135,7 @@ export default async function handler(request, response) {
     return handleWebStorageRequest(request);
   }
 
-  const body = request.method === "PUT" ? await readNodeRequestBody(request) : undefined;
+  const body = request.method === "POST" ? await readNodeRequestBody(request) : undefined;
   const result = await handleStorageRequest({
     url: getNodeRequestUrl(request),
     method: request.method,

@@ -16,15 +16,23 @@ export function SpecialRequestApprovalsPage() {
 
   const approvals = useMemo(() => getPendingSpecialRequestApprovals(quotations), [quotations]);
 
-  function handleApprove(quotation) {
-    approveSpecialRequest(quotation.id);
-    addToast({ type: "success", title: "Special request approved", message: quotation.quotationNumber });
+  async function handleApprove(quotation) {
+    try {
+      await approveSpecialRequest(quotation.id);
+      addToast({ type: "success", title: "Special request approved", message: quotation.quotationNumber });
+    } catch (error) {
+      addToast({ type: "error", title: "Approval was not saved", message: error.message });
+    }
   }
 
-  function handleReject(reason) {
-    rejectSpecialRequest(quotationToReject.id, reason);
-    addToast({ type: "success", title: "Special request rejected", message: quotationToReject.quotationNumber });
-    setQuotationToReject(null);
+  async function handleReject(reason) {
+    try {
+      await rejectSpecialRequest(quotationToReject.id, reason);
+      addToast({ type: "success", title: "Special request rejected", message: quotationToReject.quotationNumber });
+      setQuotationToReject(null);
+    } catch (error) {
+      addToast({ type: "error", title: "Rejection was not saved", message: error.message });
+    }
   }
 
   return (

@@ -1,5 +1,5 @@
 import { COLLECTIONS, removeCollection } from "./persistenceService";
 
 export function clearApplicationStorage() {
-  Object.values(COLLECTIONS).forEach((collection) => removeCollection(collection));
+  return Promise.all(Object.values(COLLECTIONS).map((collection) => removeCollection(collection)));
 }

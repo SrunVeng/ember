@@ -51,7 +51,7 @@ export function CategoriesPage() {
     modal.open();
   }
 
-  function handleSave(values) {
+  async function handleSave(values) {
     const normalizedCode = values.code.trim().toUpperCase().replace(/\s+/g, "_");
     const duplicateCode = categories.some(
       (category) => category.code === normalizedCode && category.id !== editingCategory?.id,
@@ -67,22 +67,36 @@ export function CategoriesPage() {
     }
 
     if (editingCategory) {
-      updateCategory(editingCategory.id, values);
-      addToast({ type: "success", title: "Category updated" });
+      try {
+        await updateCategory(editingCategory.id, values);
+        addToast({ type: "success", title: "Category updated" });
+      } catch (error) {
+        addToast({ type: "error", title: "Category was not saved", message: error.message });
+        return;
+      }
     } else {
-      addCategory(values);
-      addToast({ type: "success", title: "Category added" });
+      try {
+        await addCategory(values);
+        addToast({ type: "success", title: "Category added" });
+      } catch (error) {
+        addToast({ type: "error", title: "Category was not saved", message: error.message });
+        return;
+      }
     }
     modal.close();
   }
 
-  function handleToggleActive() {
-    setCategoryActive(categoryToToggle.id, !categoryToToggle.active);
-    addToast({
-      type: "success",
-      title: categoryToToggle.active ? "Category disabled" : "Category enabled",
-    });
-    setCategoryToToggle(null);
+  async function handleToggleActive() {
+    try {
+      await setCategoryActive(categoryToToggle.id, !categoryToToggle.active);
+      addToast({
+        type: "success",
+        title: categoryToToggle.active ? "Category disabled" : "Category enabled",
+      });
+      setCategoryToToggle(null);
+    } catch (error) {
+      addToast({ type: "error", title: "Category was not saved", message: error.message });
+    }
   }
 
   return (

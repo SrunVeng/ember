@@ -2,7 +2,6 @@ import {
   COLLECTIONS,
   getInitialCollection,
   loadCollection,
-  removeCollection,
   saveCollection,
 } from "../../../services/persistenceService";
 import { DEFAULT_PRICING_RULES } from "../config/defaultPricingRules";
@@ -21,7 +20,7 @@ export function savePricingRules(rules) {
   return saveCollection(COLLECTIONS.pricingRules, rules);
 }
 
-export function resetPricingRules() {
-  removeCollection(COLLECTIONS.pricingRules);
+export async function resetPricingRules() {
+  await saveCollection(COLLECTIONS.pricingRules, DEFAULT_PRICING_RULES);
   return DEFAULT_PRICING_RULES;
 }

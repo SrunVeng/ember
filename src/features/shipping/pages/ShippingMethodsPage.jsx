@@ -52,7 +52,7 @@ export function ShippingMethodsPage() {
     modal.open();
   }
 
-  function handleSave(values) {
+  async function handleSave(values) {
     const normalizedCode = values.code.trim().toUpperCase().replace(/\s+/g, "_");
     const duplicateCode = methods.some(
       (method) => method.code === normalizedCode && method.id !== editingMethod?.id,
@@ -68,22 +68,36 @@ export function ShippingMethodsPage() {
     }
 
     if (editingMethod) {
-      updateShippingMethod(editingMethod.id, values);
-      addToast({ type: "success", title: "Shipping method updated" });
+      try {
+        await updateShippingMethod(editingMethod.id, values);
+        addToast({ type: "success", title: "Shipping method updated" });
+      } catch (error) {
+        addToast({ type: "error", title: "Shipping method was not saved", message: error.message });
+        return;
+      }
     } else {
-      addShippingMethod(values);
-      addToast({ type: "success", title: "Shipping method added" });
+      try {
+        await addShippingMethod(values);
+        addToast({ type: "success", title: "Shipping method added" });
+      } catch (error) {
+        addToast({ type: "error", title: "Shipping method was not saved", message: error.message });
+        return;
+      }
     }
     modal.close();
   }
 
-  function handleToggleActive() {
-    setShippingMethodActive(methodToToggle.id, !methodToToggle.active);
-    addToast({
-      type: "success",
-      title: methodToToggle.active ? "Shipping method disabled" : "Shipping method enabled",
-    });
-    setMethodToToggle(null);
+  async function handleToggleActive() {
+    try {
+      await setShippingMethodActive(methodToToggle.id, !methodToToggle.active);
+      addToast({
+        type: "success",
+        title: methodToToggle.active ? "Shipping method disabled" : "Shipping method enabled",
+      });
+      setMethodToToggle(null);
+    } catch (error) {
+      addToast({ type: "error", title: "Shipping method was not saved", message: error.message });
+    }
   }
 
   return (

@@ -13,12 +13,16 @@ export function SettingsPage() {
   const addToast = useToastStore((state) => state.addToast);
   const navigate = useNavigate();
 
-  function handleClearStorage() {
-    clearApplicationStorage();
-    addToast({ type: "success", title: "API data cleared", message: "Blob collections were reset." });
-    resetDialog.close();
-    navigate("/");
-    window.location.reload();
+  async function handleClearStorage() {
+    try {
+      await clearApplicationStorage();
+      addToast({ type: "success", title: "API data cleared", message: "Blob collections were reset." });
+      resetDialog.close();
+      navigate("/");
+      window.location.reload();
+    } catch (error) {
+      addToast({ type: "error", title: "API data was not cleared", message: error.message });
+    }
   }
 
   return (

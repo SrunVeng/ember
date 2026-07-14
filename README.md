@@ -106,6 +106,14 @@ The app uses `src/services/persistenceService.js` to call `/api/storage`. The AP
 
 There is no mock quotation seed. New Blob stores start with an empty quotation list. Business configuration collections are initialized from default owner-managed rules when no Blob object exists yet.
 
+Storage API contract:
+
+- `GET /api/storage?collection=quotations` reads a collection.
+- `POST /api/storage?collection=quotations` with `{ "action": "save", "data": [...] }` writes a collection.
+- `POST /api/storage?collection=quotations` with `{ "action": "delete" }` clears a collection.
+
+Do not add browser-side persistence or mock quotation persistence. Persistent app data must go through `/api/storage`.
+
 ## Vercel Blob Setup
 
 Create a private Blob store in Vercel and connect it to this project. Vercel can authenticate the SDK with OIDC when the store is connected to the project, or with `BLOB_READ_WRITE_TOKEN` for local/server environments. The React app never receives the Blob token; it talks to `/api/storage`, and the server function reads/writes private JSON blobs.
