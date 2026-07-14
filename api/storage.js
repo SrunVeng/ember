@@ -1,9 +1,5 @@
 import { get, put, del } from "@vercel/blob";
 
-export const config = {
-  runtime: "edge",
-};
-
 const COLLECTION_PATHS = {
   quotations: "ember-pricing/v1/quotations.json",
   pricingRules: "ember-pricing/v1/pricing-rules.json",
@@ -12,7 +8,7 @@ const COLLECTION_PATHS = {
   appPreferences: "ember-pricing/v1/app-preferences.json",
 };
 
-function json(response, status = 200) {
+function createJsonResponse(response, status = 200) {
   return new Response(JSON.stringify(response), {
     status,
     headers: {
@@ -20,6 +16,13 @@ function json(response, status = 200) {
       "Cache-Control": "no-store",
     },
   });
+}
+
+function sendJson(response, payload, status = 200) {
+  response.statusCode = status;
+  response.setHeader("Content-Type", "application/json");
+  response.setHeader("Cache-Control", "no-store");
+  response.end(JSON.stringify(payload));
 }
 
 function getCollectionPath(requestUrl) {
@@ -50,44 +53,94 @@ async function readJsonBlob(pathname) {
   }
 }
 
-export default async function handler(request) {
-  const pathname = getCollectionPath(request.url);
+async function readNodeRequestBody(request) {
+  if (request.body) {
+    return typeof request.body === "string" ? JSON.parse(request.body) : request.body;
+  }
+
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    request.on("data", (chunk) => chunks.push(chunk));
+    request.on("end", () => {
+      const text = Buffer.concat(chunks).toString("utf8");
+      resolve(text ? JSON.parse(text) : {});
+    });
+    request.on("error", reject);
+  });
+}
+
+function getNodeRequestUrl(request) {
+  if (request.url.startsWith("http")) {
+    return request.url;
+  }
+
+  const host = request.headers.host ?? "localhost";
+  return `https://${host}${request.url}`;
+}
+
+async function handleStorageRequest({ url, method, body }) {
+  const pathname = getCollectionPath(url);
 
   if (!pathname) {
-    return json({ error: "Unknown storage collection." }, 400);
+    return { payload: { error: "Unknown storage collection." }, status: 400 };
   }
 
   try {
-    if (request.method === "GET") {
+    if (method === "GET") {
       const data = await readJsonBlob(pathname);
-      return json({ data });
+      return { payload: { data }, status: 200 };
     }
 
-    if (request.method === "PUT") {
-      const body = await request.json();
+    if (method === "PUT") {
       await put(pathname, JSON.stringify(body.data ?? null), {
         access: "private",
         allowOverwrite: true,
         contentType: "application/json",
         cacheControlMaxAge: 60,
       });
-      return json({ ok: true });
+      return { payload: { ok: true }, status: 200 };
     }
 
-    if (request.method === "DELETE") {
+    if (method === "DELETE") {
       await del(pathname);
-      return json({ ok: true });
+      return { payload: { ok: true }, status: 200 };
     }
 
-    return json({ error: "Method not allowed." }, 405);
+    return { payload: { error: "Method not allowed." }, status: 405 };
   } catch (error) {
     console.error("Vercel Blob storage error", error);
-    return json(
-      {
+    return {
+      payload: {
         error:
           "Storage is unavailable. Check that the Vercel Blob store is connected and credentials are configured.",
       },
-      503,
-    );
+      status: 503,
+    };
   }
+}
+
+export async function handleWebStorageRequest(request) {
+  const body = request.method === "PUT" ? await request.json() : undefined;
+  const result = await handleStorageRequest({
+    url: request.url,
+    method: request.method,
+    body,
+  });
+
+  return createJsonResponse(result.payload, result.status);
+}
+
+export default async function handler(request, response) {
+  if (!response) {
+    return handleWebStorageRequest(request);
+  }
+
+  const body = request.method === "PUT" ? await readNodeRequestBody(request) : undefined;
+  const result = await handleStorageRequest({
+    url: getNodeRequestUrl(request),
+    method: request.method,
+    body,
+  });
+
+  sendJson(response, result.payload, result.status);
 }
