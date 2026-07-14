@@ -28,7 +28,9 @@ export function getShippingMethods() {
 }
 
 export async function loadShippingMethods() {
-  return loadCollection(COLLECTIONS.shippingMethods, getDefaultShippingMethods());
+  return loadCollection(COLLECTIONS.shippingMethods, getDefaultShippingMethods(), {
+    persistFallback: true,
+  });
 }
 
 export function saveShippingMethods(methods) {

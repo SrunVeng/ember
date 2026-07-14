@@ -1,6 +1,3 @@
-import { getItem, removeItem, setItem } from "../lib/storage/safeStorage";
-import { STORAGE_KEYS } from "../lib/storage/storageKeys";
-
 const COLLECTIONS = {
   quotations: "quotations",
   pricingRules: "pricingRules",
@@ -8,10 +5,6 @@ const COLLECTIONS = {
   shippingMethods: "shippingMethods",
   appPreferences: "appPreferences",
 };
-
-function getStorageKey(collection) {
-  return STORAGE_KEYS[collection];
-}
 
 async function requestRemoteCollection(collection, options = {}) {
   const response = await fetch(`/api/storage?collection=${collection}`, {
@@ -33,38 +26,35 @@ async function requestRemoteCollection(collection, options = {}) {
 }
 
 export function getInitialCollection(collection, fallbackValue) {
-  return getItem(getStorageKey(collection), fallbackValue);
+  return fallbackValue;
 }
 
-export async function loadCollection(collection, fallbackValue) {
-  try {
-    const payload = await requestRemoteCollection(collection);
-    if (payload.data === null || payload.data === undefined) {
-      return fallbackValue;
+export async function loadCollection(collection, fallbackValue, options = {}) {
+  const payload = await requestRemoteCollection(collection);
+  if (payload.data === null || payload.data === undefined) {
+    if (options.persistFallback) {
+      await saveCollection(collection, fallbackValue);
     }
 
-    setItem(getStorageKey(collection), payload.data);
-    return payload.data;
-  } catch {
-    return getInitialCollection(collection, fallbackValue);
+    return fallbackValue;
   }
+
+  return payload.data;
 }
 
 export function saveCollection(collection, value) {
-  setItem(getStorageKey(collection), value);
   requestRemoteCollection(collection, {
     method: "PUT",
     body: JSON.stringify({ data: value }),
   }).catch((error) => {
-    console.warn(`Remote storage save failed for ${collection}.`, error);
+    console.error(`API save failed for ${collection}.`, error);
   });
   return value;
 }
 
 export function removeCollection(collection) {
-  removeItem(getStorageKey(collection));
   requestRemoteCollection(collection, { method: "DELETE" }).catch((error) => {
-    console.warn(`Remote storage delete failed for ${collection}.`, error);
+    console.error(`API delete failed for ${collection}.`, error);
   });
 }
 

@@ -1,4 +1,3 @@
-import { mockQuotations } from "../../../data/mockQuotations";
 import {
   COLLECTIONS,
   getInitialCollection,
@@ -7,12 +6,14 @@ import {
 } from "../../../services/persistenceService";
 import { APPROVAL_STATUSES, QUOTATION_STATUSES } from "../constants/quotationConstants";
 
+const EMPTY_QUOTATIONS = [];
+
 export function getQuotations() {
-  return getInitialCollection(COLLECTIONS.quotations, mockQuotations);
+  return getInitialCollection(COLLECTIONS.quotations, EMPTY_QUOTATIONS);
 }
 
 export async function loadQuotations() {
-  return loadCollection(COLLECTIONS.quotations, mockQuotations);
+  return loadCollection(COLLECTIONS.quotations, EMPTY_QUOTATIONS, { persistFallback: true });
 }
 
 export function saveQuotations(quotations) {

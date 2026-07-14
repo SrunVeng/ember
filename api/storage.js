@@ -1,5 +1,9 @@
 import { get, put, del } from "@vercel/blob";
 
+export const config = {
+  runtime: "edge",
+};
+
 const COLLECTION_PATHS = {
   quotations: "ember-pricing/v1/quotations.json",
   pricingRules: "ember-pricing/v1/pricing-rules.json",

@@ -12,7 +12,9 @@ export function getPricingRules() {
 }
 
 export async function loadPricingRules() {
-  return loadCollection(COLLECTIONS.pricingRules, DEFAULT_PRICING_RULES);
+  return loadCollection(COLLECTIONS.pricingRules, DEFAULT_PRICING_RULES, {
+    persistFallback: true,
+  });
 }
 
 export function savePricingRules(rules) {

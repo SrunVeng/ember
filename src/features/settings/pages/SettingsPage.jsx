@@ -3,8 +3,8 @@ import { Button } from "../../../components/ui/Button";
 import { Card, CardBody, CardHeader } from "../../../components/ui/Card";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { PageHeader } from "../../../components/ui/PageHeader";
-import { STORAGE_KEYS } from "../../../lib/storage/storageKeys";
 import { clearApplicationStorage } from "../../../services/storageService";
+import { COLLECTIONS } from "../../../services/persistenceService";
 import { useDisclosure } from "../../../hooks/useDisclosure";
 import { useToastStore } from "../../../stores/toastStore";
 
@@ -15,7 +15,7 @@ export function SettingsPage() {
 
   function handleClearStorage() {
     clearApplicationStorage();
-    addToast({ type: "success", title: "Local data cleared", message: "Reloading default mock data." });
+    addToast({ type: "success", title: "API data cleared", message: "Blob collections were reset." });
     resetDialog.close();
     navigate("/");
     window.location.reload();
@@ -25,18 +25,18 @@ export function SettingsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Settings"
-        description="Starter controls for local persistence and future application preferences."
+        description="Owner controls for Vercel Blob API collections and backend readiness."
       />
       <Card>
         <CardHeader
-          title="Storage"
-          description="Vercel Blob is used through the /api/storage backend route when deployed. Local storage remains a development fallback."
+          title="Vercel Blob Collections"
+          description="The app reads and writes data through the /api/storage backend route."
         />
         <CardBody className="space-y-4">
           <ul className="space-y-2 text-sm text-slate-600">
-            {Object.entries(STORAGE_KEYS).map(([name, key]) => (
-              <li key={key} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-                <span className="font-semibold text-slate-800">{name}</span>: {key}
+            {Object.entries(COLLECTIONS).map(([name, collection]) => (
+              <li key={collection} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <span className="font-semibold text-slate-800">{name}</span>: {collection}
               </li>
             ))}
           </ul>
@@ -49,15 +49,15 @@ export function SettingsPage() {
         <CardHeader title="Backend Readiness" />
         <CardBody>
           <p className="text-sm leading-6 text-slate-600">
-            Services own persistence boundaries, so storage can move from local fallback to Vercel Blob
-            or a relational API without rewriting page or component markup.
+            Services own persistence boundaries, so the UI talks to feature stores while the stores persist
+            through the API-backed Vercel Blob collections.
           </p>
         </CardBody>
       </Card>
       <ConfirmDialog
         isOpen={resetDialog.isOpen}
-        title="Clear local data?"
-        description="This removes saved quotations, rules, categories, shipping methods, and preferences from local fallback storage and requests deletion from the remote storage API."
+        title="Clear Blob data?"
+        description="This removes saved quotations, rules, categories, shipping methods, and preferences from the Vercel Blob API collections."
         confirmLabel="Clear saved data"
         onCancel={resetDialog.close}
         onConfirm={handleClearStorage}

@@ -1,7 +1,5 @@
 import { create } from "zustand";
 import { authenticateDemoUser } from "../app/roles";
-import { getItem, removeItem, setItem } from "../lib/storage/safeStorage";
-import { STORAGE_KEYS } from "../lib/storage/storageKeys";
 import {
   COLLECTIONS,
   getInitialCollection,
@@ -24,9 +22,11 @@ function toSession(user) {
 
 export const useAppStore = create((set, get) => ({
   preferences: getInitialCollection(COLLECTIONS.appPreferences, DEFAULT_PREFERENCES),
-  session: getItem(STORAGE_KEYS.authSession, null),
+  session: null,
   hydratePreferences: async () => {
-    const preferences = await loadCollection(COLLECTIONS.appPreferences, DEFAULT_PREFERENCES);
+    const preferences = await loadCollection(COLLECTIONS.appPreferences, DEFAULT_PREFERENCES, {
+      persistFallback: true,
+    });
     set({ preferences });
   },
   setSidebarCollapsed: (sidebarCollapsed) => {
@@ -41,12 +41,10 @@ export const useAppStore = create((set, get) => ({
     }
 
     const session = toSession(user);
-    setItem(STORAGE_KEYS.authSession, session);
     set({ session });
     return { ok: true, session };
   },
   logout: () => {
-    removeItem(STORAGE_KEYS.authSession);
     set({ session: null });
   },
 }));

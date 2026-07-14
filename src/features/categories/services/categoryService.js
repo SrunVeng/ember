@@ -65,7 +65,7 @@ export function getCategories() {
 }
 
 export async function loadCategories() {
-  return loadCollection(COLLECTIONS.categories, getDefaultCategories());
+  return loadCollection(COLLECTIONS.categories, getDefaultCategories(), { persistFallback: true });
 }
 
 export function saveCategories(categories) {

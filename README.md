@@ -13,7 +13,6 @@ Production-quality frontend starter for an EMBER & CO. pricing and quotation wor
 - lucide-react for icons
 - clsx through `src/utils/classNames.js`
 - Vercel Blob through a server API for backend-style JSON persistence
-- localStorage only as a local development fallback
 
 ## Installation
 
@@ -52,10 +51,9 @@ The project uses feature-based architecture:
 - `src/app`: app shell, route configuration, providers, layout, and error boundary
 - `src/components`: shared UI and layout components
 - `src/features`: dashboard, quotations, pricing, categories, shipping, approvals, and settings
-- `src/lib`: storage and validation infrastructure
+- `src/lib`: shared validation infrastructure
 - `src/stores`: cross-feature stores such as toasts and preferences
 - `src/utils`: reusable formatting and number helpers
-- `src/data`: mock starter data
 - `scripts`: local verification scripts
 
 ## Architecture Rules
@@ -65,8 +63,8 @@ The project uses feature-based architecture:
 - Pricing calculations live in `src/features/pricing/services/pricingService.js`.
 - Validation schemas live beside their feature in `schemas`.
 - Zustand stores are split by feature and call services for persistence.
-- Storage keys are centralized in `src/lib/storage/storageKeys.js`.
-- `safeStorage.js` is the only place that reads or writes localStorage.
+- `src/services/persistenceService.js` is the only client-side persistence boundary.
+- All saved app data goes through `/api/storage` and Vercel Blob.
 - Business statuses and category keys are constants, not raw strings spread across JSX.
 
 ## Pricing Logic
@@ -102,11 +100,11 @@ Zustand stores are intentionally small:
 
 Derived pricing summaries are not stored globally; they are recalculated through hooks and services.
 
-## LocalStorage
+## API Data Storage
 
-The app now uses a persistence boundary in `src/services/persistenceService.js`. When `/api/storage` is available, saves go through the Vercel Blob-backed server function. localStorage remains a local development fallback so the Vite-only dev server still works without Vercel credentials.
+The app uses `src/services/persistenceService.js` to call `/api/storage`. The API route stores JSON collections in Vercel Blob and is the only persistence layer for app data.
 
-Reads are guarded against corrupted JSON and fall back to mock/default data. The current fallback keys are versioned with `ember.pricing.v1.*`. Components and pages never call `localStorage` directly.
+There is no mock quotation seed. New Blob stores start with an empty quotation list. Business configuration collections are initialized from default owner-managed rules when no Blob object exists yet.
 
 ## Vercel Blob Setup
 
@@ -138,7 +136,7 @@ For heavy multi-user production use, replace the persistence service with a tran
 4. Map it in `mapFormToQuotation` and `quotationToFormValues`.
 5. Display it in details/list views only if it is operationally useful.
 
-## Replacing localStorage With an API
+## Replacing Blob With Another API
 
 Keep React components unchanged where possible. Replace persistence inside feature services:
 
@@ -147,7 +145,7 @@ Keep React components unchanged where possible. Replace persistence inside featu
 - `categoryService.js`
 - `shippingMethodService.js`
 
-The stores can then call async service methods or be adapted to load/save through API actions.
+The stores can continue calling feature services while those services point to the new API.
 
 ## Tailwind Styling
 
@@ -160,7 +158,7 @@ Shared UI variants live in `src/components/ui`. Prefer extending those component
 - Shipping is weight multiplied by the selected shipping method rate.
 - Special requests add a fee and require management approval.
 - Approval and sent actions are blocked until a special request is approved.
-- Mock data initializes only when localStorage has no saved quotation data.
+- New installations start with no quotations until staff or owner users create them.
 
 ## Supplement Warning
 
