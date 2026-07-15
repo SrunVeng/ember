@@ -1,7 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { Button } from "../../../components/ui/Button";
+import { Card, CardBody } from "../../../components/ui/Card";
 import { EmptyState } from "../../../components/ui/EmptyState";
+import { LoadingSpinner } from "../../../components/ui/LoadingSpinner";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { Pagination } from "../../../components/ui/Pagination";
 import { usePagination } from "../../../hooks/usePagination";
@@ -13,6 +15,8 @@ import { useQuotationStore } from "../store/quotationStore";
 export function QuotationListPage() {
   const navigate = useNavigate();
   const quotations = useQuotationStore((state) => state.quotations);
+  const isHydrated = useQuotationStore((state) => state.isHydrated);
+  const loadError = useQuotationStore((state) => state.loadError);
   const { filters, filteredQuotations, setFilter, clearFilters } = useQuotationFilters(quotations);
   const { page, pageCount, paginatedItems, setPage } = usePagination(filteredQuotations, 8);
 
@@ -39,7 +43,20 @@ export function QuotationListPage() {
         }}
         resultCount={filteredQuotations.length}
       />
-      {paginatedItems.length ? (
+      {loadError ? (
+        <EmptyState
+          title="Quotations could not be loaded"
+          description={loadError}
+          actionLabel="Try again"
+          onAction={() => window.location.reload()}
+        />
+      ) : !isHydrated ? (
+        <Card>
+          <CardBody>
+            <LoadingSpinner label="Loading quotations" />
+          </CardBody>
+        </Card>
+      ) : paginatedItems.length ? (
         <div className="space-y-4">
           <QuotationTable quotations={paginatedItems} />
           <Pagination page={page} pageCount={pageCount} onPageChange={setPage} />

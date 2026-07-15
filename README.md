@@ -106,6 +106,8 @@ The app uses `src/services/persistenceService.js` to call `/api/storage`. The AP
 
 There is no mock quotation seed. New Blob stores start with an empty quotation list. Business configuration collections are initialized from default owner-managed rules when no Blob object exists yet.
 
+Quotation reads do not write the empty fallback back to Blob. Only create, edit, status, approval, delete, or explicit replacement actions save `quotations.json`; this prevents startup hydration from overwriting a newly created quote with `[]`.
+
 Storage API contract:
 
 - `GET /api/storage?collection=quotations` reads a collection.
@@ -185,6 +187,7 @@ Start with API endpoints for quotations, pricing rules, categories, shipping met
 - Extracted pricing rules into focused sections so the page coordinates state instead of rendering every rule inline.
 - Kept all calculations in pricing services and verified the required examples with `npm run verify:pricing`.
 - Used feature stores for shared state and avoided storing transient form input globally.
+- Kept quotation persistence API-first: routes fetch quote records from Vercel Blob through the quotation store instead of trusting already-loaded browser memory.
 - Added duplicate code checks for categories and shipping methods.
 - Replaced nested link/button markup with a shared `Button` that can render as a router link.
 - Confirmed the production build succeeds with JavaScript and JSX only.

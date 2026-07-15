@@ -13,11 +13,19 @@ export function getQuotations() {
 }
 
 export async function loadQuotations() {
-  return loadCollection(COLLECTIONS.quotations, EMPTY_QUOTATIONS, { persistFallback: true });
+  return loadCollection(COLLECTIONS.quotations, EMPTY_QUOTATIONS);
 }
 
 export function saveQuotations(quotations) {
   return saveCollection(COLLECTIONS.quotations, quotations);
+}
+
+export async function loadQuotationById(quotationId) {
+  const quotations = await loadQuotations();
+  return {
+    quotation: findQuotationById(quotations, quotationId),
+    quotations,
+  };
 }
 
 export function findQuotationById(quotations, quotationId) {

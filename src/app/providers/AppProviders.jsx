@@ -10,11 +10,17 @@ import { ErrorBoundary } from "../ErrorBoundary";
 
 export function AppProviders({ children }) {
   useEffect(() => {
-    useAppStore.getState().hydratePreferences();
-    usePricingRulesStore.getState().hydratePricingRules();
-    useCategoryStore.getState().hydrateCategories();
-    useShippingMethodStore.getState().hydrateShippingMethods();
-    useQuotationStore.getState().hydrateQuotations();
+    const hydrate = (request) => {
+      request.catch((error) => {
+        console.error("Application data hydration failed", error);
+      });
+    };
+
+    hydrate(useAppStore.getState().hydratePreferences());
+    hydrate(usePricingRulesStore.getState().hydratePricingRules());
+    hydrate(useCategoryStore.getState().hydrateCategories());
+    hydrate(useShippingMethodStore.getState().hydrateShippingMethods());
+    hydrate(useQuotationStore.getState().hydrateQuotations());
   }, []);
 
   return (
