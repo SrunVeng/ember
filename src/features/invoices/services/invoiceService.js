@@ -3,6 +3,25 @@ import { roundMoney } from "../../pricing/utils/money";
 import { formatCurrency } from "../../../utils/currency";
 import { formatDate } from "../../../utils/date";
 
+const DEFAULT_INVOICE_PROFILE = {
+  companyName: "EMBER & CO.",
+  phone: "",
+  email: "",
+  address: "",
+  invoiceNote:
+    "Generated from the EMBER Pricing System. Please review payment and delivery details with the customer before fulfillment.",
+};
+
+function getInvoiceProfile(companyProfile = {}) {
+  return {
+    companyName: companyProfile.companyName || DEFAULT_INVOICE_PROFILE.companyName,
+    phone: companyProfile.phone || "",
+    email: companyProfile.email || "",
+    address: companyProfile.address || "",
+    invoiceNote: companyProfile.invoiceNote || DEFAULT_INVOICE_PROFILE.invoiceNote,
+  };
+}
+
 function getInvoiceRows(quotation) {
   const productTotal = roundMoney(
     quotation.finalSellingPrice -
@@ -23,7 +42,20 @@ function writeText(doc, text, x, y, options = {}) {
   doc.text(String(text ?? ""), x, y, options);
 }
 
-export function createInvoicePdf(quotation) {
+function writeCompanyContact(doc, profile, x, y) {
+  const contactLines = [profile.phone, profile.email, profile.address].filter(Boolean);
+
+  contactLines.forEach((line) => {
+    const lines = doc.splitTextToSize(line, 220);
+    doc.text(lines, x, y);
+    y += lines.length * 13;
+  });
+
+  return y;
+}
+
+export function createInvoicePdf(quotation, companyProfile) {
+  const profile = getInvoiceProfile(companyProfile);
   const doc = new jsPDF({ unit: "pt", format: "letter" });
   const invoiceNumber = `INV-${quotation.quotationNumber.replace("EMB-", "")}`;
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -32,13 +64,18 @@ export function createInvoicePdf(quotation) {
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(24);
-  writeText(doc, "EMBER & CO.", margin, y);
+  writeText(doc, profile.companyName, margin, y);
 
   doc.setFontSize(11);
   doc.setFont("helvetica", "normal");
   writeText(doc, "Customer Invoice", margin, y + 18);
+  doc.setFontSize(9);
+  doc.setTextColor(71, 85, 105);
+  writeCompanyContact(doc, profile, margin, y + 34);
+  doc.setTextColor(15, 23, 42);
 
   doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
   writeText(doc, invoiceNumber, pageWidth - margin, y, { align: "right" });
   doc.setFont("helvetica", "normal");
   writeText(doc, `Quotation: ${quotation.quotationNumber}`, pageWidth - margin, y + 18, {
@@ -104,7 +141,7 @@ export function createInvoicePdf(quotation) {
   doc.setTextColor(100, 116, 139);
   doc.text(
     doc.splitTextToSize(
-      "Generated from the EMBER Pricing System. Please review payment and delivery details with the customer before fulfillment.",
+      profile.invoiceNote,
       pageWidth - margin * 2,
     ),
     margin,
@@ -114,6 +151,6 @@ export function createInvoicePdf(quotation) {
   return doc;
 }
 
-export function downloadInvoice(quotation) {
-  createInvoicePdf(quotation).save(`${quotation.quotationNumber}-invoice.pdf`);
+export function downloadInvoice(quotation, companyProfile) {
+  createInvoicePdf(quotation, companyProfile).save(`${quotation.quotationNumber}-invoice.pdf`);
 }

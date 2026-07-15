@@ -7,8 +7,18 @@ import {
   saveCollection,
 } from "../services/persistenceService";
 
+export const DEFAULT_COMPANY_PROFILE = {
+  companyName: "EMBER & CO.",
+  phone: "",
+  email: "",
+  address: "",
+  invoiceNote:
+    "Generated from the EMBER Pricing System. Please review payment and delivery details with the customer before fulfillment.",
+};
+
 const DEFAULT_PREFERENCES = {
   sidebarCollapsed: false,
+  companyProfile: DEFAULT_COMPANY_PROFILE,
 };
 
 function toSession(user) {
@@ -20,17 +30,49 @@ function toSession(user) {
   };
 }
 
+function normalizeCompanyProfile(companyProfile = {}) {
+  return {
+    companyName: String(companyProfile.companyName || DEFAULT_COMPANY_PROFILE.companyName).trim(),
+    phone: String(companyProfile.phone || "").trim(),
+    email: String(companyProfile.email || "").trim(),
+    address: String(companyProfile.address || "").trim(),
+    invoiceNote: String(companyProfile.invoiceNote || DEFAULT_COMPANY_PROFILE.invoiceNote).trim(),
+  };
+}
+
+function normalizePreferences(preferences = {}) {
+  return {
+    ...DEFAULT_PREFERENCES,
+    ...preferences,
+    companyProfile: normalizeCompanyProfile(preferences.companyProfile),
+  };
+}
+
 export const useAppStore = create((set, get) => ({
   preferences: getInitialCollection(COLLECTIONS.appPreferences, DEFAULT_PREFERENCES),
   session: null,
   hydratePreferences: async () => {
-    const preferences = await loadCollection(COLLECTIONS.appPreferences, DEFAULT_PREFERENCES, {
+    const preferences = normalizePreferences(await loadCollection(COLLECTIONS.appPreferences, DEFAULT_PREFERENCES, {
       persistFallback: true,
-    });
+    }));
     set({ preferences });
   },
   setSidebarCollapsed: async (sidebarCollapsed) => {
-    const preferences = { ...get().preferences, sidebarCollapsed };
+    const preferences = normalizePreferences({ ...get().preferences, sidebarCollapsed });
+    await saveCollection(COLLECTIONS.appPreferences, preferences);
+    set({ preferences });
+  },
+  updateCompanyProfile: async (companyProfile) => {
+    const normalizedProfile = normalizeCompanyProfile(companyProfile);
+
+    if (!normalizedProfile.companyName) {
+      throw new Error("Company name is required.");
+    }
+
+    const preferences = normalizePreferences({
+      ...get().preferences,
+      companyProfile: normalizedProfile,
+    });
     await saveCollection(COLLECTIONS.appPreferences, preferences);
     set({ preferences });
   },

@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { EmptyState } from "../components/ui/EmptyState";
 import { LoginPage } from "../features/auth/pages/LoginPage";
 import { useAppStore } from "../stores/appStore";
@@ -38,9 +38,11 @@ function RoleProtectedRoute({ route }) {
 
 function AuthenticatedLayout() {
   const session = useAppStore((state) => state.session);
+  const location = useLocation();
 
   if (!session) {
-    return <Navigate to="/login" replace />;
+    const redirect = encodeURIComponent(`${location.pathname}${location.search}`);
+    return <Navigate to={`/login?redirect=${redirect}`} replace />;
   }
 
   return <DashboardLayout />;
@@ -48,9 +50,11 @@ function AuthenticatedLayout() {
 
 function HomeRedirect() {
   const session = useAppStore((state) => state.session);
+  const location = useLocation();
 
   if (!session) {
-    return <Navigate to="/login" replace />;
+    const redirect = encodeURIComponent(`${location.pathname}${location.search}`);
+    return <Navigate to={`/login?redirect=${redirect}`} replace />;
   }
 
   return <Navigate to={session.role === USER_ROLES.OWNER ? "/" : "/calculator"} replace />;

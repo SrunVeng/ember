@@ -15,11 +15,11 @@ export const usePricingRulesStore = create((set) => ({
   },
   saveRules: async (rules) => {
     const saved = await savePricingRules(rules);
-    set({ rules: saved });
+    set({ rules: saved, isHydrated: true });
   },
   resetRules: async () => {
     const rules = await resetPricingRules();
-    set({ rules });
+    set({ rules, isHydrated: true });
     return rules;
   },
 }));

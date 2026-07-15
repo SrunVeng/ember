@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { Flame, Lock } from "lucide-react";
 import { Button } from "../../../components/ui/Button";
 import { Card, CardBody } from "../../../components/ui/Card";
@@ -11,8 +11,22 @@ function getLandingPath(role) {
   return role === USER_ROLES.OWNER ? "/" : "/calculator";
 }
 
+function getSafeRedirectPath(redirectPath, role) {
+  if (
+    !redirectPath ||
+    !redirectPath.startsWith("/") ||
+    redirectPath.startsWith("//") ||
+    redirectPath.startsWith("/login")
+  ) {
+    return getLandingPath(role);
+  }
+
+  return redirectPath;
+}
+
 export function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const session = useAppStore((state) => state.session);
   const login = useAppStore((state) => state.login);
   const [credentials, setCredentials] = useState({
@@ -22,7 +36,7 @@ export function LoginPage() {
   const [error, setError] = useState("");
 
   if (session) {
-    return <Navigate to={getLandingPath(session.role)} replace />;
+    return <Navigate to={getSafeRedirectPath(searchParams.get("redirect"), session.role)} replace />;
   }
 
   function updateField(name, value) {
@@ -39,7 +53,7 @@ export function LoginPage() {
       return;
     }
 
-    navigate(getLandingPath(result.session.role), { replace: true });
+    navigate(getSafeRedirectPath(searchParams.get("redirect"), result.session.role), { replace: true });
   }
 
   return (

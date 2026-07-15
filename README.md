@@ -1,6 +1,6 @@
 # EMBER Pricing System
 
-Production-quality frontend starter for an EMBER & CO. pricing and quotation workflow. The app helps workers calculate selling prices, manage quotations, configure rules, maintain categories and shipping methods, and approve special requests.
+Production-quality frontend starter for an EMBER & CO. pricing and quotation workflow. The app helps workers calculate selling prices, manage quotations, configure rules, maintain categories and shipping methods, configure invoice business details, and approve special requests.
 
 ## Technology Stack
 
@@ -87,6 +87,8 @@ The `Price Calculator` page is the fast staff workflow for entering website pric
 
 Quotation details include a `Download invoice` action. It generates a customer-ready PDF invoice in the browser. The invoice intentionally hides internal website cost, profit, tax logic, and shipping company fee. Customers see a product total, shipping, optional services, delivery, and total due.
 
+Owner users can update the invoice company name, contact details, address, and footer note from Business Settings. Those settings are stored in the `appPreferences` Blob collection.
+
 ## State Management
 
 Zustand stores are intentionally small:
@@ -96,7 +98,7 @@ Zustand stores are intentionally small:
 - `categoryStore`: product category CRUD and enable/disable
 - `shippingMethodStore`: shipping method CRUD and enable/disable
 - `toastStore`: transient notifications only
-- `appStore`: small UI preferences only
+- `appStore`: current session plus owner-managed business and UI preferences
 
 Derived pricing summaries are not stored globally; they are recalculated through hooks and services.
 
@@ -115,6 +117,8 @@ Storage API contract:
 - `POST /api/storage?collection=quotations` with `{ "action": "delete" }` clears a collection.
 
 Do not add browser-side persistence or mock quotation persistence. Persistent app data must go through `/api/storage`.
+
+`vercel.json` includes a single-page app rewrite so direct visits and refreshes on routes such as `/quotations/:quotationId` serve the React app instead of a platform 404. The login redirect keeps the requested route in the URL, so after signing in the user returns to the original page.
 
 ## Vercel Blob Setup
 

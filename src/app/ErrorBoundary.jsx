@@ -24,8 +24,8 @@ export class ErrorBoundary extends Component {
             <CardHeader title="Something went wrong" />
             <CardBody className="space-y-4">
               <p className="text-sm leading-6 text-slate-600">
-                The application hit an unexpected error. Reload the page, or clear local feature data
-                from Settings if corrupted browser data caused the issue.
+                The application hit an unexpected error. Reload the page, then try the action again.
+                If the issue continues, check the backend API response for the current collection.
               </p>
               <Button onClick={() => window.location.reload()}>Reload page</Button>
             </CardBody>

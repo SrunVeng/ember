@@ -5,6 +5,7 @@ import { Card, CardBody } from "../../../components/ui/Card";
 import { EmptyState } from "../../../components/ui/EmptyState";
 import { LoadingSpinner } from "../../../components/ui/LoadingSpinner";
 import { PageHeader } from "../../../components/ui/PageHeader";
+import { useAppStore } from "../../../stores/appStore";
 import { useToastStore } from "../../../stores/toastStore";
 import { QuotationDetailsCard } from "../components/QuotationDetailsCard";
 import { useQuotationRecord } from "../hooks/useQuotationRecord";
@@ -13,6 +14,7 @@ export function QuotationDetailsPage() {
   const { quotationId } = useParams();
   const navigate = useNavigate();
   const { quotation, isLoading, hasLoaded, loadError } = useQuotationRecord(quotationId);
+  const companyProfile = useAppStore((state) => state.preferences.companyProfile);
   const addToast = useToastStore((state) => state.addToast);
 
   if (isLoading) {
@@ -54,7 +56,7 @@ export function QuotationDetailsPage() {
               icon={Download}
               onClick={async () => {
                 const { downloadInvoice } = await import("../../invoices/services/invoiceService");
-                downloadInvoice(quotation);
+                downloadInvoice(quotation, companyProfile);
                 addToast({ type: "success", title: "Invoice downloaded" });
               }}
             >
